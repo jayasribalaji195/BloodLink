@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloodLink — Blood Donor Registry and Search</title>
+  <meta name="description" content="College Java & DBMS Assessment project: Blood donor registry with 90-day cooldown enforcement, emergency search, and donation tracking.">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="nav-container">
+      <div class="brand">
+        <span class="brand-icon">🩸</span>
+        <div>
+          <h1 class="brand-title">BloodLink</h1>
+          <div class="brand-subtitle">Blood Donor Registry &amp; Emergency Search System</div>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a href="/swagger-ui/index.html" target="_blank" class="btn-nav" id="swaggerLink">
+          <span>⚡ Swagger / OpenAPI UI</span>
+        </a>
+        <a href="/api-docs" target="_blank" class="btn-nav" id="apiDocsLink">
+          <span>📄 API Docs JSON</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Cooldown Business Rule Alert Banner -->
+    <div class="cooldown-alert">
+      <span>ℹ️</span>
+      <div>
+        <strong>90-Day Cooldown Business Rule:</strong> Donors who donated blood within the past 90 days are automatically marked <strong>unavailable</strong> and excluded from search results until their cooldown period expires.
+      </div>
+    </div>
+
+    <!-- Quick Stats Ribbon -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon red">🩸</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statTotalDonors">-</div>
+          <div class="stat-label">Total Registered Donors</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">✨</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statAvailableDonors">-</div>
+          <div class="stat-label">Eligible Donors (Available Now)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">⏳</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statCooldownDonors">-</div>
+          <div class="stat-label">Donors in 90-Day Cooldown</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🏥</div>
+        <div class="stat-info">
+          <div class="stat-value" id="statBloodGroups">8</div>
+          <div class="stat-label">Configured Blood Groups</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-header">
+      <button class="tab-btn active" data-tab="tabSearch" id="tabBtnSearch">🔍 Emergency Donor Search</button>
+      <button class="tab-btn" data-tab="tabDirectory" id="tabBtnDirectory">📋 All Donors Directory</button>
+      <button class="tab-btn" data-tab="tabRegister" id="tabBtnRegister">➕ Register New Donor</button>
+      <button class="tab-btn" data-tab="tabDonation" id="tabBtnDonation">💉 Record Blood Donation</button>
+      <button class="tab-btn" data-tab="tabMatrix" id="tabBtnMatrix">📊 Blood Group Metrics</button>
+    </nav>
+
+    <!-- TAB 1: Emergency Donor Search -->
+    <section id="tabSearch" class="tab-pane active">
+      <div class="card">
+        <h2 class="card-title">🔍 Emergency Search for Blood Donors</h2>
+        <p class="card-description">
+          Find matching donors immediately. Note: Search only returns active, available donors who are outside the 90-day cooldown period.
+        </p>
+        <form id="searchForm" class="form-grid">
+          <div class="form-group">
+            <label for="searchBloodGroup">Blood Group</label>
+            <select id="searchBloodGroup">
+              <option value="">All Blood Groups</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="searchCity">City</label>
+            <input type="text" id="searchCity" placeholder="e.g. Coimbatore, Chennai, Bangalore">
+            <div class="city-chips">
+              <span class="chip" onclick="setSearchCity('Coimbatore')">Coimbatore</span>
+              <span class="chip" onclick="setSearchCity('Chennai')">Chennai</span>
+              <span class="chip" onclick="setSearchCity('Bangalore')">Bangalore</span>
+              <span class="chip" onclick="setSearchCity('Kochi')">Kochi</span>
+              <span class="chip" onclick="setSearchCity('Mumbai')">Mumbai</span>
+            </div>
+          </div>
+          <div class="form-group full-width" style="display:flex; gap:0.75rem; align-items:flex-end;">
+            <button type="submit" class="btn btn-primary" id="btnExecuteSearch">Search Eligible Donors</button>
+            <button type="button" class="btn btn-secondary" id="btnResetSearch">Reset Filters</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Search Results Table -->
+      <div class="card">
+        <h3 class="card-title">Eligible Donor Results <span id="searchResultsCount" class="badge badge-success">0 Found</span></h3>
+        <div class="table-responsive">
+          <table id="searchResultsTable">
+            <thead>
+              <tr>
+                <th>Donor Name</th>
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="searchResultsBody">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Donor Directory -->
+    <section id="tabDirectory" class="tab-pane">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+          <div>
+            <h2 class="card-title">📋 Donor Registry Directory</h2>
+            <p class="card-description" style="margin-bottom:0;">Full list of all registered donors with their real-time cooldown and eligibility status.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btnRefreshDirectory">🔄 Refresh</button>
+        </div>
+
+        <div class="table-responsive">
+          <table id="donorsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Contact</th>
+                <th>Last Donation</th>
+                <th>Status / Cooldown</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="donorsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Register New Donor -->
+    <section id="tabRegister" class="tab-pane">
+      <div class="card">
+        <h2 class="card-title">➕ Register Volunteer Blood Donor</h2>
+        <p class="card-description">Register a new donor into the BloodLink database. System will automatically check for duplicate email and enforce initial cooldown period.</p>
+        
+        <form id="registerDonorForm" class="form-grid">
+          <div class="form-group">
+            <label for="regName">Full Name <span class="required">*</span></label>
+            <input type="text" id="regName" required placeholder="e.g. Arun Kumar">
+          </div>
+
+          <div class="form-group">
+            <label for="regEmail">Email Address <span class="required">*</span></label>
+            <input type="email" id="regEmail" required placeholder="e.g. arun.kumar@example.com">
+          </div>
+
+          <div class="form-group">
+            <label for="regPhone">Mobile Number (10 Digits) <span class="required">*</span></label>
+            <input type="tel" id="regPhone" pattern="^[6-9]\d{9}$" required placeholder="e.g. 9876543210">
+            <span class="field-hint">Must be a valid 10-digit Indian mobile number</span>
+          </div>
+
+          <div class="form-group">
+            <label for="regBloodGroup">Blood Group <span class="required">*</span></label>
+            <select id="regBloodGroup" required>
+              <option value="">Select Blood Group</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="regCity">City <span class="required">*</span></label>
+            <input type="text" id="regCity" required placeholder="e.g. Coimbatore">
+          </div>
+
+          <div class="form-group">
+            <label for="regLastDonation">Last Blood Donation Date (Optional)</label>
+            <input type="date" id="regLastDonation">
+            <span class="field-hint">Leave blank if the volunteer has never donated before.</span>
+          </div>
+
+          <div class="form-group full-width">
+            <button type="submit" class="btn btn-primary" id="btnSubmitRegister">Register Donor</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TAB 4: Record Blood Donation -->
+    <section id="tabDonation" class="tab-pane">
+      <div class="card">
+        <h2 class="card-title">💉 Record a Blood Donation</h2>
+        <p class="card-description">
+          Recording a donation updates the donor's last donation date and marks them <strong>unavailable for 90 days</strong>. If the donor is already within their 90-day cooldown, the system rejects the donation.
+        </p>
+
+        <form id="donationForm" class="form-grid">
+          <div class="form-group">
+            <label for="donationDonorSelect">Select Donor <span class="required">*</span></label>
+            <select id="donationDonorSelect" required>
+              <option value="">Choose registered donor...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="donationDate">Donation Date <span class="required">*</span></label>
+            <input type="date" id="donationDate" required>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="donationNotes">Donation Notes / Hospital / Camp Details</label>
+            <textarea id="donationNotes" rows="3" placeholder="e.g. Voluntary blood drive at PSG Hospital"></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <button type="submit" class="btn btn-primary" id="btnSubmitDonation">Record Blood Donation</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Recent Donations List -->
+      <div class="card">
+        <h3 class="card-title">Recent Donation History Log</h3>
+        <div class="table-responsive">
+          <table id="recentDonationsTable">
+            <thead>
+              <tr>
+                <th>Record ID</th>
+                <th>Donor Name</th>
+                <th>Blood Group</th>
+                <th>City</th>
+                <th>Donation Date</th>
+                <th>Next Eligible Date (90 Days)</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="recentDonationsBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: Blood Group Metrics -->
+    <section id="tabMatrix" class="tab-pane">
+      <div class="card">
+        <h2 class="card-title">📊 Blood Group Donor Availability Matrix</h2>
+        <p class="card-description">Live inventory metrics showing both total registered donors and currently available donors for each blood group.</p>
+        <div class="bg-grid" id="bgMatrixContainer">
+          <!-- Dynamically populated cards -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Donation History Modal -->
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="historyModalTitle">Donor Donation History</h3>
+        <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="historyModalBody">
+        <!-- Rendered history table -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer>
+    <p><strong>BloodLink</strong> &mdash; Blood Donor Registry &amp; Search System</p>
+    <p>Spring Boot 3 + MySQL + Hibernate + Jakarta Validation + Vanilla JS</p>
+    <p>College Java Programming &amp; DBMS Assessment Project</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

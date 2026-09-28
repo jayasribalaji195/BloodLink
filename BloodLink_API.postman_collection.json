@@ -1,0 +1,353 @@
+{
+  "info": {
+    "_postman_id": "c71e4695-71ad-4672-8f19-b2f70b797831",
+    "name": "BloodLink API - Complete Practical Assessment Collection",
+    "description": "Comprehensive Postman collection for BloodLink: Blood Donor Registry & Search System.\nIncludes CRUD operations, emergency search with 90-day cooldown enforcement, validation tests, conflict tests, and donor inventory metrics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Blood Groups",
+      "item": [
+        {
+          "name": "Get All Blood Groups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/blood-groups",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blood-groups"]
+            }
+          }
+        },
+        {
+          "name": "Get Blood Group by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/blood-groups/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blood-groups", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Blood Group",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"HH\",\n  \"description\": \"Bombay Blood Group (rare phenotype)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/blood-groups",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blood-groups"]
+            }
+          }
+        },
+        {
+          "name": "Update Blood Group",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A+\",\n  \"description\": \"Updated compatibility description for A positive\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/blood-groups/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "blood-groups", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Donors",
+      "item": [
+        {
+          "name": "Get All Donors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors"]
+            }
+          }
+        },
+        {
+          "name": "Get Donor by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "1"]
+            }
+          }
+        },
+        {
+          "name": "Register New Donor (Eligible)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Karthik Balan\",\n  \"email\": \"karthik.balan@example.com\",\n  \"phone\": \"9876543299\",\n  \"bloodGroupId\": 1,\n  \"city\": \"Coimbatore\",\n  \"lastDonationDate\": \"2026-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/donors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors"]
+            }
+          }
+        },
+        {
+          "name": "Register Donor - Duplicate Email (Expect 409 Conflict)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Duplicate Tester\",\n  \"email\": \"arun.kumar@example.com\",\n  \"phone\": \"9876543200\",\n  \"bloodGroupId\": 1,\n  \"city\": \"Coimbatore\",\n  \"lastDonationDate\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/donors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors"]
+            }
+          }
+        },
+        {
+          "name": "Register Donor - Validation Error (Expect 400 Bad Request)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"123\",\n  \"bloodGroupId\": null,\n  \"city\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/donors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors"]
+            }
+          }
+        },
+        {
+          "name": "Update Donor",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Arun Kumar Updated\",\n  \"email\": \"arun.kumar@example.com\",\n  \"phone\": \"9876543210\",\n  \"bloodGroupId\": 1,\n  \"city\": \"Coimbatore\",\n  \"lastDonationDate\": \"2026-01-15\",\n  \"available\": true,\n  \"active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/donors/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "1"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Donor (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Donor Search (90-Day Cooldown Enforced)",
+      "item": [
+        {
+          "name": "Search Donors - Blood Group and City (O+ in Coimbatore)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/search?bloodGroup=O%2B&city=Coimbatore",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "search"],
+              "query": [
+                { "key": "bloodGroup", "value": "O%2B" },
+                { "key": "city", "value": "Coimbatore" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Donors - Blood Group Only (A+)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/search?bloodGroup=A%2B",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "search"],
+              "query": [
+                { "key": "bloodGroup", "value": "A%2B" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Donors - City Only (Coimbatore)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/search?city=Coimbatore",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "search"],
+              "query": [
+                { "key": "city", "value": "Coimbatore" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search All Eligible Donors (No Filters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/search",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "search"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Donor Counts & Inventory",
+      "item": [
+        {
+          "name": "Total Registered Donors by Blood Group",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/count-by-blood-group",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "count-by-blood-group"]
+            }
+          }
+        },
+        {
+          "name": "Currently Available Donors by Blood Group",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/available-count-by-blood-group",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "available-count-by-blood-group"]
+            }
+          }
+        },
+        {
+          "name": "Complete Blood Group Count Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/count-summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "count-summary"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Donations",
+      "item": [
+        {
+          "name": "Record Blood Donation (Enters 90-Day Cooldown)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donorId\": 3,\n  \"donationDate\": \"2026-09-28\",\n  \"notes\": \"Voluntary camp donation at PSG Hospital\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/donations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donations"]
+            }
+          }
+        },
+        {
+          "name": "Record Donation - In Cooldown Rejection (Expect 409 Conflict)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"donorId\": 10,\n  \"donationDate\": \"2026-09-28\",\n  \"notes\": \"Attempted second donation during cooldown period\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/donations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donations"]
+            }
+          }
+        },
+        {
+          "name": "Get All Donation Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donations"]
+            }
+          }
+        },
+        {
+          "name": "Get Donation Record by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donations/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donations", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Donor Donation History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/donors/1/donations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "donors", "1", "donations"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
